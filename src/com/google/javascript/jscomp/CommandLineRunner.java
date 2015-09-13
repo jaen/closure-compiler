@@ -1012,7 +1012,8 @@ public class CommandLineRunner extends
         reportError("Please specify --common_js_entry_module.");
       }
       flags.closureEntryPoint =
-          ImmutableList.of(ES6ModuleLoader.toModuleName(URI.create(flags.commonJsEntryModule)));
+        // TODO: verify if substitution like this makes sense
+        ImmutableList.of(JavascriptModuleLoaderHelpers.toModuleName(URI.create(flags.commonJsEntryModule)));
     }
 
     if (flags.outputWrapperFile != null && !flags.outputWrapperFile.isEmpty()) {
@@ -1058,7 +1059,7 @@ public class CommandLineRunner extends
       if (!flags.moduleRoot.isEmpty()) {
         moduleRoots.addAll(flags.moduleRoot);
       } else {
-        moduleRoots.add(ES6ModuleLoader.DEFAULT_FILENAME_PREFIX);
+        moduleRoots.add(JavascriptModuleLoaderHelpers.DEFAULT_FILENAME_PREFIX);
       }
 
       getCommandLineConfig()

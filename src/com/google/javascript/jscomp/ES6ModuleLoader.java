@@ -31,13 +31,13 @@ import java.util.regex.Pattern;
  * @see "Section 26.3.3.18.2 of the ES6 spec"
  * @see "http://wiki.commonjs.org/wiki/Modules/1.1"
  */
-public final class ES6ModuleLoader {
+public final class ES6ModuleLoader implements IJavascriptModuleLoader {
   /** According to the spec, the forward slash should be the delimiter on all platforms. */
-  static final String MODULE_SLASH = "/";
+  private static final String MODULE_SLASH = "/";
   /** The default module root, the current directory. */
-  public static final String DEFAULT_FILENAME_PREFIX = "." + MODULE_SLASH;
+  private static final String DEFAULT_FILENAME_PREFIX = "." + MODULE_SLASH;
 
-  static final DiagnosticType LOAD_ERROR = DiagnosticType.error(
+  private static final DiagnosticType LOAD_ERROR = DiagnosticType.error(
       "JSC_ES6_MODULE_LOAD_ERROR",
       "Failed to load module \"{0}\"");
 
@@ -76,7 +76,8 @@ public final class ES6ModuleLoader {
    * Find a CommonJS module {@code requireName} relative to {@code context}.
    * @return The normalized module URI, or {@code null} if not found.
    */
-  URI locateCommonJsModule(String requireName, CompilerInput context) {
+  @Override
+  public URI locateCommonJsModule(String requireName, CompilerInput context) {
     // * the immediate name require'd
     URI loadAddress = locate(requireName, context);
     if (loadAddress == null) {
@@ -94,7 +95,8 @@ public final class ES6ModuleLoader {
    * Find an ES6 module {@code moduleName} relative to {@code context}.
    * @return The normalized module URI, or {@code null} if not found.
    */
-  URI locateEs6Module(String moduleName, CompilerInput context) {
+  @Override
+  public URI locateEs6Module(String moduleName, CompilerInput context) {
     return locate(moduleName + ".js", context);
   }
 
@@ -114,7 +116,8 @@ public final class ES6ModuleLoader {
   /**
    * Normalizes the address of {@code input} and resolves it against the module roots.
    */
-  URI normalizeInputAddress(CompilerInput input) {
+  @Override
+  public URI normalizeInputAddress(CompilerInput input) {
     String name = input.getName();
     return normalizeAddress(createUri(name));
   }
@@ -152,20 +155,13 @@ public final class ES6ModuleLoader {
     return name.startsWith("." + MODULE_SLASH) || name.startsWith(".." + MODULE_SLASH);
   }
 
-  /**
-   * Turns a filename into a JS identifier that is used for moduleNames in
-   * rewritten code. Removes leading ./, replaces / with $, removes trailing .js
-   * and replaces - with _. All moduleNames get a "module$" prefix.
-   */
-  public static String toModuleName(URI filename) {
-    String moduleName =
-        stripJsExtension(filename.toString())
-            .replaceAll("^\\." + Pattern.quote(MODULE_SLASH), "")
-            .replace(MODULE_SLASH, "$")
-            .replace('\\', '$')
-            .replace('-', '_')
-            .replace(':', '_')
-            .replace('.', '_');
-    return "module$" + moduleName;
+  @Override
+  public String toModuleName(URI filename) {
+    return JavascriptModuleLoaderHelpers.toModuleName(filename);
+  }
+
+  @Override
+  public String toModuleIdentifier(URI filename) {
+    return JavascriptModuleLoaderHelpers.toModuleName(filename);
   }
 }

@@ -18,6 +18,7 @@ package com.google.javascript.jscomp;
 
 import com.google.common.collect.ImmutableList;
 
+import com.google.javascript.jscomp.IJavascriptModuleLoader;
 import junit.framework.TestCase;
 
 import java.net.URI;
@@ -31,14 +32,14 @@ import java.net.URI;
 public final class ES6ModuleLoaderTest extends TestCase {
 
   public void testWindowsAddresses() {
-    ES6ModuleLoader loader =
+    IJavascriptModuleLoader loader =
         new ES6ModuleLoader(ImmutableList.of("."), inputs("js\\a.js", "js\\b.js"));
     assertEquals("js/a.js", loader.normalizeInputAddress(input("js\\a.js")).toString());
     assertEquals("js/b.js", loader.locateEs6Module("./b", input("js\\a.js")).toString());
   }
 
   public void testLocateCommonJs() throws Exception {
-    ES6ModuleLoader loader =
+    IJavascriptModuleLoader loader =
         new ES6ModuleLoader(ImmutableList.of("."), inputs("A/index.js", "B/index.js", "app.js"));
 
     CompilerInput inputA = input("A/index.js");
@@ -51,7 +52,7 @@ public final class ES6ModuleLoaderTest extends TestCase {
   }
 
   public void testNormalizeUris() throws Exception {
-    ES6ModuleLoader loader = new ES6ModuleLoader(ImmutableList.of("a", "b", "/c"), inputs());
+    IJavascriptModuleLoader loader = new ES6ModuleLoader(ImmutableList.of("a", "b", "/c"), inputs());
     assertUri("a.js", loader.normalizeInputAddress(input("a/a.js")));
     assertUri("a.js", loader.normalizeInputAddress(input("a.js")));
     assertUri("some.js", loader.normalizeInputAddress(input("some.js")));
@@ -69,7 +70,7 @@ public final class ES6ModuleLoaderTest extends TestCase {
   }
 
   public void testNotFound() throws Exception {
-    ES6ModuleLoader loader =
+    IJavascriptModuleLoader loader =
         new ES6ModuleLoader(ImmutableList.of("a", "b"), inputs("a/a.js", "b/b.js"));
     assertNull(
         "a.js' module root is stripped", loader.locateEs6Module("../a/a.js", input("b/b.js")));

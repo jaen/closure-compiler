@@ -765,7 +765,7 @@ public class CompilerOptions implements Serializable {
   boolean processCommonJSModules = false;
 
   /** CommonJS module prefix. */
-  List<String> moduleRoots = ImmutableList.of(ES6ModuleLoader.DEFAULT_FILENAME_PREFIX);
+  List<String> moduleRoots = ImmutableList.of(JavascriptModuleLoaderHelpers.DEFAULT_FILENAME_PREFIX);
 
 
   //--------------------------------

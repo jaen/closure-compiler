@@ -2209,7 +2209,7 @@ public abstract class AbstractCommandLineRunner<A extends Compiler,
       return this;
     }
 
-    private List<String> moduleRoots = ImmutableList.of(ES6ModuleLoader.DEFAULT_FILENAME_PREFIX);
+    private List<String> moduleRoots = ImmutableList.of(JavascriptModuleLoaderHelpers.DEFAULT_FILENAME_PREFIX);
 
     /**
      * Sets the CommonJS module path prefix (maps to {@link #setModuleRoots(List)}).

@@ -101,7 +101,7 @@ public final class ProcessEs6ModulesTest extends CompilerTestCase {
     test(
         "import name from 'module_does_not_exist'; use(name);",
         null,
-        ES6ModuleLoader.LOAD_ERROR,
+        JavascriptModuleLoaderHelpers.LOAD_ERROR,
         null);
   }
 

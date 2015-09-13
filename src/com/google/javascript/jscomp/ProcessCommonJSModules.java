@@ -41,7 +41,7 @@ public final class ProcessCommonJSModules implements CompilerPass {
   private static final String MODULE = "module";
 
   private final Compiler compiler;
-  private final ES6ModuleLoader loader;
+  private final IJavascriptModuleLoader loader;
   private final boolean reportDependencies;
 
   /**
@@ -51,7 +51,7 @@ public final class ProcessCommonJSModules implements CompilerPass {
    * @param compiler The compiler
    * @param loader The module loader which is used to locate CommonJS modules
    */
-  public ProcessCommonJSModules(Compiler compiler, ES6ModuleLoader loader) {
+  public ProcessCommonJSModules(Compiler compiler, IJavascriptModuleLoader loader) {
     this(compiler, loader, true);
   }
 
@@ -67,7 +67,7 @@ public final class ProcessCommonJSModules implements CompilerPass {
    *     and goog.require calls will still be generated if this argument is
    *     false.
    */
-  public ProcessCommonJSModules(Compiler compiler, ES6ModuleLoader loader,
+  public ProcessCommonJSModules(Compiler compiler, IJavascriptModuleLoader loader,
       boolean reportDependencies) {
     this.compiler = compiler;
     this.loader = loader;
@@ -86,7 +86,13 @@ public final class ProcessCommonJSModules implements CompilerPass {
   }
 
   String inputToModuleName(CompilerInput input) {
-    return ES6ModuleLoader.toModuleName(loader.normalizeInputAddress(input));
+    // TODO: is normalisation needed?
+    return loader.toModuleName(loader.normalizeInputAddress(input));
+  }
+
+  String inputToModuleIdentifier(CompilerInput input) {
+    // TODO: is normalisation needed?
+    return loader.toModuleIdentifier(loader.normalizeInputAddress(input));
   }
 
   /**
@@ -262,11 +268,12 @@ public final class ProcessCommonJSModules implements CompilerPass {
       String requireName = require.getChildAtIndex(1).getString();
       URI loadAddress = loader.locateCommonJsModule(requireName, t.getInput());
       if (loadAddress == null) {
-        compiler.report(t.makeError(require, ES6ModuleLoader.LOAD_ERROR, requireName));
+        compiler.report(t.makeError(require, JavascriptModuleLoaderHelpers.LOAD_ERROR, requireName));
         return;
       }
 
-      String moduleName = ES6ModuleLoader.toModuleName(loadAddress);
+      // TODO: verify substitution for instances
+      String moduleName = loader.toModuleName(loadAddress);
       Node moduleRef = IR.name(moduleName).srcref(require);
       parent.replaceChild(require, moduleRef);
       Node script = getCurrentScriptNode(parent);
@@ -290,13 +297,14 @@ public final class ProcessCommonJSModules implements CompilerPass {
           "CompilerInput / script node");
 
       String moduleName = inputToModuleName(t.getInput());
+      String moduleIdentifier = inputToModuleIdentifier(t.getInput());
 
       // Rename vars to not conflict in global scope.
       NodeTraversal.traverseEs6(compiler, script, new SuffixVarsCallback(
-          moduleName));
+          moduleIdentifier));
 
       // Replace all refs to module.exports and exports
-      processExports(script, moduleName);
+      processExports(script, moduleName, moduleIdentifier);
       moduleExportRefs.clear();
       exportRefs.clear();
 
@@ -372,7 +380,7 @@ public final class ProcessCommonJSModules implements CompilerPass {
      *
      * All other forms are handled by a more general algorithm.
      */
-    private void processExports(Node script, String moduleName) {
+    private void processExports(Node script, String moduleName, String moduleIdentifier) {
       if (hasOneTopLevelModuleExportAssign()) {
         // One top-level assign: transform to
         // moduleName = rhs
@@ -548,11 +556,12 @@ public final class ProcessCommonJSModules implements CompilerPass {
           String moduleName = name.substring(0, endIndex);
           URI loadAddress = loader.locateCommonJsModule(moduleName, t.getInput());
           if (loadAddress == null) {
-            t.makeError(typeNode, ES6ModuleLoader.LOAD_ERROR, moduleName);
+            t.makeError(typeNode, JavascriptModuleLoaderHelpers.LOAD_ERROR, moduleName);
             return;
           }
 
-          String globalModuleName = ES6ModuleLoader.toModuleName(loadAddress);
+          // TODO: verify substitution for instances
+          String globalModuleName = loader.toModuleName(loadAddress);
           typeNode.setString(
               localTypeName == null ? globalModuleName : globalModuleName + localTypeName);
         } else {

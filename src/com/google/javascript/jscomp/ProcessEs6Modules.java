@@ -46,7 +46,7 @@ import java.util.Set;
 public final class ProcessEs6Modules extends AbstractPostOrderCallback {
   private static final String DEFAULT_EXPORT_NAME = "$jscompDefaultExport";
 
-  private final ES6ModuleLoader loader;
+  private final IJavascriptModuleLoader loader;
 
   private final Compiler compiler;
   private int scriptNodeCount = 0;
@@ -86,7 +86,7 @@ public final class ProcessEs6Modules extends AbstractPostOrderCallback {
    *     and goog.require calls will still be generated if this argument is
    *     false.
    */
-  public ProcessEs6Modules(Compiler compiler, ES6ModuleLoader loader,
+  public ProcessEs6Modules(Compiler compiler, IJavascriptModuleLoader loader,
       boolean reportDependencies) {
     this.compiler = compiler;
     this.loader = loader;
@@ -121,11 +121,12 @@ public final class ProcessEs6Modules extends AbstractPostOrderCallback {
     String importName = importDecl.getLastChild().getString();
     URI loadAddress = loader.locateEs6Module(importName, t.getInput());
     if (loadAddress == null) {
-      compiler.report(t.makeError(importDecl, ES6ModuleLoader.LOAD_ERROR, importName));
+      compiler.report(t.makeError(importDecl, JavascriptModuleLoaderHelpers.LOAD_ERROR, importName));
       return;
     }
 
-    String moduleName = ES6ModuleLoader.toModuleName(loadAddress);
+    // TODO: verify substitution for instance
+    String moduleName = loader.toModuleName(loadAddress);
     Set<String> namesToRequire = new LinkedHashSet<>();
     for (Node child : importDecl.children()) {
       if (child.isEmpty() || child.isString()) {
@@ -228,10 +229,11 @@ public final class ProcessEs6Modules extends AbstractPostOrderCallback {
       if (loadAddress == null) {
         compiler.report(
             t.makeError(
-                moduleIdentifier, ES6ModuleLoader.LOAD_ERROR, moduleIdentifier.getString()));
+                moduleIdentifier, JavascriptModuleLoaderHelpers.LOAD_ERROR, moduleIdentifier.getString()));
         return;
       }
-      String moduleName = ES6ModuleLoader.toModuleName(loadAddress);
+      // TODO: verify substitution for instance
+      String moduleName = loader.toModuleName(loadAddress);
 
       for (Node exportSpec : export.getFirstChild().children()) {
         String nameFromOtherModule = exportSpec.getFirstChild().getString();
@@ -304,8 +306,9 @@ public final class ProcessEs6Modules extends AbstractPostOrderCallback {
     // ES6 module.
     rewriteRequires(script);
 
+    // TODO: verify normalisation and subsitution for instance
     URI normalizedAddress = loader.normalizeInputAddress(t.getInput());
-    String moduleName = ES6ModuleLoader.toModuleName(normalizedAddress);
+    String moduleName = loader.toModuleName(normalizedAddress);
 
     for (Map.Entry<String, NameNodePair> entry : exportMap.entrySet()) {
       String exportedName = entry.getKey();
@@ -478,11 +481,12 @@ public final class ProcessEs6Modules extends AbstractPostOrderCallback {
           URI loadAddress = loader.locateEs6Module(moduleName, t.getInput());
           if (loadAddress == null) {
             compiler.report(t.makeError(
-                typeNode, ES6ModuleLoader.LOAD_ERROR, moduleName));
+                typeNode, JavascriptModuleLoaderHelpers.LOAD_ERROR, moduleName));
             return;
           }
 
-          String globalModuleName = ES6ModuleLoader.toModuleName(loadAddress);
+          // TODO: verify substitution for instance
+          String globalModuleName = loader.toModuleName(loadAddress);
           typeNode.setString(
               localTypeName == null ? globalModuleName : globalModuleName + localTypeName);
         } else {

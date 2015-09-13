@@ -17,6 +17,7 @@
 package com.google.javascript.jscomp;
 
 import com.google.common.collect.ImmutableList;
+import com.google.javascript.jscomp.JavascriptModuleLoaderHelpers;
 import com.google.javascript.rhino.Node;
 
 import java.net.URI;
@@ -247,7 +248,7 @@ public final class ProcessCommonJSModulesTest extends CompilerTestCase {
     compiler
         .getOptions()
         .dependencyOptions
-        .setEntryPoints(ImmutableList.of(ES6ModuleLoader.toModuleName(URI.create("a"))));
+        .setEntryPoints(ImmutableList.of(JavascriptModuleLoaderHelpers.toModuleName(URI.create("a"))));
     compiler.compile(
         ImmutableList.of(SourceFile.fromCode("externs.js", "")), shuffled, compiler.getOptions());
 
